@@ -34,7 +34,7 @@ var promptschema = {
     }
   });
 
-let host = "localhost";
+let host = "192.168.99.100";
 let port = 8529;
 let databasename = 'theseed';
 let username = 'seed';

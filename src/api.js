@@ -7,7 +7,7 @@ const config = {
   hosts: '54.210.52.93:3000'
 }
 
-let host = "localhost";
+let host = "192.168.99.100";
 let port = 8529;
 let databasename = 'theseed';
 let username = 'seed';
@@ -18,6 +18,23 @@ var db = arangojs({
   databaseName: databasename
 });
 
+// console.log(db.name);
+// var worldsCollection =  db.collection("temp");
+// worldsCollection.create().then(
+//   () => console.log('Collection created'),
+//   err => console.error('Failed to create collection:', err)
+// );
+//
+// var doc = {
+//   a: 'foo',
+//   b: 'bar',
+//   c: Date()
+// };
+//
+// worldsCollection.save(doc).then(
+//   meta => console.log('Document saved:', meta._rev),
+//   err => console.error('Failed to save document:', err)
+// );
 
 api.get('/',
   async (ctx, next) => {
@@ -56,7 +73,7 @@ api.get('/getPlanets/:universe',
           // data contains general information about the graph
       });
 
-      await graphx.traversal('multiverse/2197737', {
+      await graphx.traversal('multiverse/838', {
         direction: 'outbound',
         graphName: universe,
        edgeCollection : 'contains',
@@ -86,7 +103,7 @@ api.put('/editObject/:objectid',
     const { objectid } = ctx.params;
     const { transform } = ctx.request.body;
     console.log(ctx.request.body);
-    console.log(transform);
+    console.log()
 
     var keys = [objectid];
     let objectCollection = db.collection("objects");

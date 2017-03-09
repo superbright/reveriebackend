@@ -106,8 +106,6 @@ var createMultiVerse = function () {
               name: 'planet' + i,
               c: Date()
             };
-            //    planets.push(docplanet);
-
             //add a universe document
 
             _context.next = 27;
@@ -274,7 +272,7 @@ _prompt2.default.get(promptschema, function (err, result) {
   }
 });
 
-var host = "localhost";
+var host = "192.168.99.100";
 var port = 8529;
 var databasename = 'theseed';
 var username = 'seed';
