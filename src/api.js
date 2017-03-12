@@ -102,7 +102,6 @@ api.get('/getObjects/:planetid',
 async(ctx, next) => {
   const { planetid } = ctx.params;
   try {
-    console.log(planetid);
     var graphx = db.graph("multiverse");
     await graphx.get().then(data => {
         // data contains general information about the graph
@@ -122,7 +121,9 @@ async(ctx, next) => {
     })
     .then(result => {
        console.log(result); // ['a', 'b', 'c', 'd']
-      ctx.body = { data: result.visited.vertices};
+      ctx.body = { data: result.visited.vertices,
+        id: planetid
+      };
       ctx.status = 200;
     });
 
