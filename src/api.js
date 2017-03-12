@@ -7,7 +7,7 @@ const config = {
   hosts: '54.210.52.93:3000'
 }
 
-let host = "192.168.99.100";
+let host = "localhost";
 let port = 8529;
 let databasename = 'theseed';
 let username = 'seed';
