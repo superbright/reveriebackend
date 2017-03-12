@@ -104,6 +104,7 @@ var createMultiVerse = function () {
 
             docplanet = {
               name: 'planet' + i,
+              timeline: [],
               c: Date()
             };
             //add a universe document

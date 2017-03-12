@@ -21,33 +21,31 @@ const app = websockify(new Koa())
   //   ctx.state.authorizationHeader = 'Key ' + config.key;
   //   await next();
   // })
-  .use(bodyParser({ enableTypes: ['json'] }))
-  .use(api.routes());
-  //.use(api.allowedMethods());
-
-  app.use(async (ctx, next) => {
+  .use(bodyParser()) //{ enableTypes: ['json'] }
+  .use(async (ctx, next) => {
     ctx.body = ctx.request.body;
-    console.log(ctx.request.body);
     await next();
-  });
-//
-// app.use(ctx => {
-//   console.log(ctx.request.body);
-//   // the parsed body will store in this.request.body
-//   // if nothing was parsed, body will be an empty object {}
-//
-//    await next();
-// });
+  }).use(api.routes())
 
   io.on( 'connection', ( ctx, data ) => {
     console.log( 'join event fired', data )
-    // io.broadcast( 'boop', {
-    //   numConnections: io.connections.size
-    // });
-  })
+    io.broadcast( 'hello', {
+      numConnections: io.connections.size
+    });
+  });
 
-  io.on( 'message', ( ctx, data ) => {
-  console.log( `message: ${ data }` )
-})
+    io.on('dumb', ( ctx, data ) => {
+      io.broadcast( 'hello', {
+        message: "dumb"
+      });
+    });
+
+  io.on('updateobject', ( ctx, data ) => {
+    //console.log( `message: ${ data }` )
+    api.updateObjectinPlanet(JSON.parse(data),io);
+    io.broadcast( 'hello', {
+      numConnections: io.connections.size
+    });
+  });
   io.attach( app )
 export default app;

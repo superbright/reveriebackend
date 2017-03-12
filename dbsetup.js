@@ -113,11 +113,10 @@ async function createMultiVerse() {
       err => console.error('Failed to save document:', err)
     );
 
-
-
     for(let i = 0; i < numofelements; i ++ ) {
       let docplanet = {
         name: 'planet' + i,
+        timeline : [],
         c: Date()
       };
          //add a universe document

@@ -36,6 +36,41 @@ var db = arangojs({
 //   err => console.error('Failed to save document:', err)
 // );
 
+api.updateObjectinPlanet = async function(data,io) {
+
+    const { objectid,transform,planetid } = data;
+      let objectCollection = db.collection("objects");
+      let planetcollection = db.collection("universe");
+
+        await objectCollection.lookupByKeys([objectid]).then(
+        meta => {
+          if(meta.length == 0) {
+          //  io.broadcast( 'message', { result: "object not found"});
+            return;
+          }
+          objectCollection.update(meta[0],{transform:transform}).then(doc1 => {
+             //io.broadcast( 'message', { result: "ok"});
+          }, err => console.error(err.stack));
+        });
+
+        await planetcollection.lookupByKeys([planetid]).then(
+        meta => {
+          if(meta.length == 0) {
+            //io.broadcast( 'message', { result: "planet not found"});
+            return;
+          }
+          var timeline = meta[0].timeline;
+          timeline.push({
+            timestap: Date.now(),
+            objectid: objectid,
+            transform: transform
+          });
+          planetcollection.update(meta[0], {timeline: timeline}).then(doc1 => {
+             //io.broadcast( 'message', { result: "updated planetlog"});
+          }, err => console.error(err.stack));
+        });
+}
+
 api.get('/',
   async (ctx, next) => {
     // Reply with 201 Created when the item is saved
@@ -63,6 +98,40 @@ api.get('/getUniverse/:universe',
   }
 );
 
+api.get('/getObjects/:planetid',
+async(ctx, next) => {
+  const { planetid } = ctx.params;
+  try {
+    console.log(planetid);
+    var graphx = db.graph("multiverse");
+    await graphx.get().then(data => {
+        // data contains general information about the graph
+    });
+    await graphx.traversal('universe/'+planetid, {
+      direction: 'outbound',
+      graphName: "multiverse",
+      edgeCollection : 'contains',
+    //  visitor: 'result.vertices.push(vertex);result.paths.push(path);',
+      maxDepth: 1,
+      order: 'preorder-expander',
+      init: 'result.vertices = [];',
+      uniqueness : {
+         vertices : "global",
+         edges : "none"
+       }
+    })
+    .then(result => {
+       console.log(result); // ['a', 'b', 'c', 'd']
+      ctx.body = { data: result.visited.vertices};
+      ctx.status = 200;
+    });
+
+  } catch (err) {
+    console.log(err);
+  }
+
+});
+
 api.get('/getPlanets/:universe',
   async(ctx, next) => {
     const { universe } = ctx.params;
@@ -73,10 +142,10 @@ api.get('/getPlanets/:universe',
           // data contains general information about the graph
       });
 
-      await graphx.traversal('multiverse/838', {
+      await graphx.traversal('multiverse/454', {
         direction: 'outbound',
         graphName: universe,
-       edgeCollection : 'contains',
+        edgeCollection : 'contains',
       //  visitor: 'result.vertices.push(vertex);result.paths.push(path);',
         maxDepth: 1,
         order: 'preorder-expander',
@@ -102,20 +171,18 @@ api.put('/editObject/:objectid',
   async(ctx, next) => {
     const { objectid } = ctx.params;
     const { transform } = ctx.request.body;
-    console.log(ctx.request.body);
-    console.log()
 
     var keys = [objectid];
     let objectCollection = db.collection("objects");
     await objectCollection.lookupByKeys(keys).then(
       meta => {
-        console.log(meta);
-          ctx.body = meta;
+        console.log(meta[0]);
+        objectCollection.update(meta[0],{transform:transform}).then(doc1 => {
+            ctx.body = doc1;
+        });
       });
-    ctx.status = 200;
-
-
-  });
+      ctx.status = 200;
+});
 
 //add new object to a planet
 api.post('/addObject/:planetid/:objectid',
@@ -129,8 +196,8 @@ api.post('/addObject/:planetid/:objectid',
     edgedoccontainsobject._from = 'universe/' + planetid;
 
     var docobject = {
-      id: objectid,
-      transformdata: [],
+      assetid: objectid,
+      transform: {},
       c: Date()
     };
 
@@ -158,40 +225,51 @@ api.post('/addObject/:planetid/:objectid',
 
 api.post('/createPlanet/:planetcollectionname/:universecollectionname',
   async(ctx, next) => {
-    const { name } = ctx.params;
+
     try {
+
+      console.log(ctx.body);
+
       const { planetcollectionname } = ctx.params;
       const { universecollectionname } = ctx.params;
-      console.log(universecollectionname);
+      const { name } = ctx.body;
+
+      console.log(name);
 
       let edgedoccontainsplanet = { };
       let universecollection = db.collection(universecollectionname);
       let planetcollection = db.collection(planetcollectionname);
       let edgecollection = db.edgeCollection("contains");
 
-      await universecollection.all().then(data => {
-          // data contains general information about the graph
-          console.log(data._result[0]._key);
-          edgedoccontainsplanet._from = 'multiverse/' + data._result[0]._key;
-      });
+      let data = await planetcollection.byExample({name:name});
 
-      let docplanet = {
-        name: 'planet' + Math.floor((Math.random() * 1000) + 1),
-        c: Date()
-      };
-      await planetcollection.save(docplanet).then(
-          meta => {
-        console.log("created room");
-        edgedoccontainsplanet._to = 'universe/' + meta._key;
-        });
+      console.log(data._result.length);
 
-      await edgecollection.save(edgedoccontainsplanet)
-        .then(edge => {
-            console.log(edge);
-            ctx.body = edgedoccontainsplanet;
-        });
+      if(data._result.length > 0) {
+        //ctx.body = {error: "name exists"};
+        return ctx.throw(400, 'Name Exists');
+      } else {
+          await universecollection.all().then(data => {
+              edgedoccontainsplanet._from = 'multiverse/' + data._result[0]._key;
+          });
 
-        ctx.status = 200;
+          let docplanet = {
+            name: name,
+            timeline: [],
+            c: Date()
+          };
+          await planetcollection.save(docplanet).then(
+              meta => {
+
+            edgedoccontainsplanet._to = 'universe/' + meta._key;
+            });
+
+          await edgecollection.save(edgedoccontainsplanet)
+            .then(edge => {
+                ctx.body = edgedoccontainsplanet;
+            });
+      }
+        //ctx.status = 200;
 
     } catch (err) {
       console.log(err);
