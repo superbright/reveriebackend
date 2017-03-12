@@ -142,7 +142,7 @@ api.get('/getPlanets/:universe',
           // data contains general information about the graph
       });
 
-      await graphx.traversal('multiverse/454', {
+      await graphx.traversal('multiverse/109039', {
         direction: 'outbound',
         graphName: universe,
         edgeCollection : 'contains',
