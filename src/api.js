@@ -7,7 +7,8 @@ const config = {
   hosts: '54.210.52.93:3000'
 }
 
-let host = "localhost";
+//let host = "localhost";
+let host = "178.62.197.58";
 let port = 8529;
 let databasename = 'theseed';
 let username = 'seed';
@@ -163,7 +164,7 @@ api.get('/getPlanets/:universe',
       });
 
     } catch (err) {
-      console.log(err.response.body);
+      console.log(err);
     }
   }
 );
@@ -212,6 +213,7 @@ api.post('/addObject/:planetid/:objectid',
       let edgecollection = db.edgeCollection("contains");
       await edgecollection.save(edgedoccontainsobject)
         .then(edge => {
+            console.log("Added");
             console.log(edge);
         });
       ctx.body = edgedoccontainsobject;
@@ -278,23 +280,23 @@ api.post('/createPlanet/:planetcollectionname/:universecollectionname',
     }
   });
 
-api.post('/createUniverse/:name',
-  async(ctx, next) => {
-    const { name } = ctx.params;
-    try {
-      let worldsCollection = db.collection(name);
-      console.log("name to create is " + name);
-      await worldsCollection.create().then(() => {
-          console.log("created worlds");
-            ctx.status = 200;
-        });
-
-    } catch (err) {
-      console.log(err);
-      ctx.body = err.response.body;
-    }
-  }
-);
+// api.post('/createUniverse/:name',
+//   async(ctx, next) => {
+//     const { name } = ctx.params;
+//     try {
+//       let worldsCollection = db.collection(name);
+//     //  console.log("name to create is " + name);
+//       await worldsCollection.create().then(() => {
+//         //  console.log("created worlds");
+//             ctx.status = 200;
+//         });
+//
+//     } catch (err) {
+//       console.log(err);
+//       ctx.body = err.response.body;
+//     }
+//   }
+// );
 
 
 export default api;

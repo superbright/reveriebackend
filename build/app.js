@@ -4,6 +4,14 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _regenerator = require('babel-runtime/regenerator');
+
+var _regenerator2 = _interopRequireDefault(_regenerator);
+
+var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+
+var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
+
 var _koa = require('koa');
 
 var _koa2 = _interopRequireDefault(_koa);
@@ -49,17 +57,49 @@ var app = (0, _koaWebsocket2.default)(new _koa2.default()).use((0, _koaViews2.de
 //   ctx.state.authorizationHeader = 'Key ' + config.key;
 //   await next();
 // })
-.use((0, _koaBodyparser2.default)()).use(_api2.default.routes()).use(_api2.default.allowedMethods());
+.use((0, _koaBodyparser2.default)()) //{ enableTypes: ['json'] }
+.use(function () {
+  var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(ctx, next) {
+    return _regenerator2.default.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            ctx.body = ctx.request.body;
+            _context.next = 3;
+            return next();
+
+          case 3:
+          case 'end':
+            return _context.stop();
+        }
+      }
+    }, _callee, undefined);
+  }));
+
+  return function (_x, _x2) {
+    return _ref.apply(this, arguments);
+  };
+}()).use(_api2.default.routes());
 
 io.on('connection', function (ctx, data) {
   console.log('join event fired', data);
-  io.broadcast('boop', {
+  io.broadcast('hello', {
     numConnections: io.connections.size
   });
 });
 
-io.on('message', function (ctx, data) {
-  console.log('message: ' + data);
+io.on('dumb', function (ctx, data) {
+  io.broadcast('hello', {
+    message: "dumb"
+  });
+});
+
+io.on('updateobject', function (ctx, data) {
+  //console.log( `message: ${ data }` )
+  _api2.default.updateObjectinPlanet(JSON.parse(data), io);
+  io.broadcast('hello', {
+    numConnections: io.connections.size
+  });
 });
 io.attach(app);
 exports.default = app;
