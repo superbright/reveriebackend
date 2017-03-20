@@ -273,8 +273,8 @@ _prompt2.default.get(promptschema, function (err, result) {
   }
 });
 
-var host = "178.62.197.58";
-var port = 8529;
+var host = "8937fa04.ngrok.io";
+var port = 80;
 var databasename = 'theseed';
 var username = 'seed';
 var password = 's33d';

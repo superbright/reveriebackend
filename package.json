@@ -9,12 +9,12 @@
     "build": "babel src -d build",
     "babel-version": "babel --version",
     "test": "npm run build; mocha --require 'babel-polyfill' --compilers js:babel-register",
-    "dbsetup" : "babel dbsetup.js --out-file dbsetup-compiled.js"
+    "dbsetup": "babel dbsetup.js --out-file dbsetup-compiled.js"
   },
   "author": "igal nassima",
   "license": "ISC",
   "devDependencies": {
-    "babel-cli": "^6.23.0",
+    "babel-cli": "^6.24.0",
     "babel-core": "^6.21.0",
     "babel-loader": "^6.2.10",
     "babel-plugin-transform-runtime": "^6.15.0",

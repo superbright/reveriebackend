@@ -8,8 +8,8 @@ const config = {
 }
 
 //let host = "localhost";
-let host = "178.62.197.58";
-let port = 8529;
+let host = "8937fa04.ngrok.io";
+let port = 80;
 let databasename = 'theseed';
 let username = 'seed';
 let password = 's33d';
@@ -45,31 +45,30 @@ api.updateObjectinPlanet = async function(data,io) {
 
         await objectCollection.lookupByKeys([objectid]).then(
         meta => {
+          //console.log("length " + meta.length);
           if(meta.length == 0) {
-          //  io.broadcast( 'message', { result: "object not found"});
             return;
           }
           objectCollection.update(meta[0],{transform:transform}).then(doc1 => {
-             //io.broadcast( 'message', { result: "ok"});
+              //console.log("updated");
           }, err => console.error(err.stack));
         });
 
-        await planetcollection.lookupByKeys([planetid]).then(
-        meta => {
-          if(meta.length == 0) {
-            //io.broadcast( 'message', { result: "planet not found"});
-            return;
-          }
-          var timeline = meta[0].timeline;
-          timeline.push({
-            timestap: Date.now(),
-            objectid: objectid,
-            transform: transform
-          });
-          planetcollection.update(meta[0], {timeline: timeline}).then(doc1 => {
-             //io.broadcast( 'message', { result: "updated planetlog"});
-          }, err => console.error(err.stack));
-        });
+        // await planetcollection.lookupByKeys([planetid]).then(
+        // meta => {
+        //   if(meta.length == 0) {
+        //     return;
+        //   }
+        //   var timeline = meta[0].timeline;
+        //   timeline.push({
+        //     timestap: Date.now(),
+        //     objectid: objectid,
+        //     transform: transform
+        //   });
+        //   planetcollection.update(meta[0], {timeline: timeline}).then(doc1 => {
+        //     console.log("updated");
+        //   }, err => console.error(err.stack));
+        // });
 }
 
 api.get('/',
@@ -144,7 +143,7 @@ api.get('/getPlanets/:universe',
           // data contains general information about the graph
       });
 
-      await graphx.traversal('multiverse/109039', {
+      await graphx.traversal('multiverse/454', {
         direction: 'outbound',
         graphName: universe,
         edgeCollection : 'contains',
@@ -169,6 +168,8 @@ api.get('/getPlanets/:universe',
   }
 );
 
+
+
 api.put('/editObject/:objectid',
   async(ctx, next) => {
     const { objectid } = ctx.params;
@@ -185,6 +186,31 @@ api.put('/editObject/:objectid',
       });
       ctx.status = 200;
 });
+
+
+//add new object to a planet
+api.post('/deleteObject/:objectid',
+
+  async(ctx, next) => {
+
+  //  const { planetid } = ctx.params;
+    const { objectid } = ctx.params;
+
+    var graph = db.graph("multiverse");
+    await graph.get().then(data => {
+        // data contains general information about the graph
+    });
+
+    var collection = graph.vertexCollection('objects');
+    collection.remove(objectid)
+    .then(() => {
+        console.log('ok destroyed');
+        ctx.body = "ok";
+        ctx.status = 200;
+        // document 'vertices/some-key' no longer exists
+    });
+}
+);
 
 //add new object to a planet
 api.post('/addObject/:planetid/:objectid',
@@ -261,15 +287,19 @@ api.post('/createPlanet/:planetcollectionname/:universecollectionname',
             timeline: [],
             c: Date()
           };
+
+          var planetobj = {};
+
           await planetcollection.save(docplanet).then(
               meta => {
-
+                planetobj = meta;
+                planetobj.name = name;
             edgedoccontainsplanet._to = 'universe/' + meta._key;
-            });
+          });
 
           await edgecollection.save(edgedoccontainsplanet)
             .then(edge => {
-                ctx.body = edgedoccontainsplanet;
+                ctx.body = planetobj;
             });
       }
         //ctx.status = 200;

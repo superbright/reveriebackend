@@ -44,7 +44,7 @@ const app = websockify(new Koa())
     //console.log( `message: ${ data }` )
     api.updateObjectinPlanet(JSON.parse(data),io);
     io.broadcast( 'hello', {
-      numConnections: io.connections.size
+      message: "updated"
     });
   });
   io.attach( app )

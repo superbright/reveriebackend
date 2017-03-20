@@ -34,8 +34,8 @@ var promptschema = {
     }
   });
 
-let host = "178.62.197.58";
-let port = 8529;
+let host = "8937fa04.ngrok.io";
+let port = 80;
 let databasename = 'theseed';
 let username = 'seed';
 let password = 's33d';
