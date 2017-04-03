@@ -1,5 +1,8 @@
 import KoaRouter from 'koa-router';
 import arangojs, {Database, aql} from 'arangojs';
+import gc from 'graphcommons';
+let accesskey = "sk_fj5_UlUpdrmhx4dlN43Qxg";
+let graph_id = "750107c0-4669-4245-97bc-6f0923ae95c2";
 
 const api = KoaRouter();
 
@@ -13,6 +16,12 @@ let port = 80;
 let databasename = 'theseed';
 let username = 'seed';
 let password = 's33d';
+
+var callback = function(result) {
+ console.log('log:', result);
+}
+
+let graphcommons = new gc(accesskey, callback);
 
 var db = arangojs({
   url: `http://${username}:${password}@${host}:${port}`,
@@ -80,6 +89,28 @@ api.get('/',
   }
 );
 
+api.get('/graphData',
+  async (ctx, next) => {
+    // Reply with 201 Created when the item is save
+
+    graphcommons.graphs(graph_id,function(graph) {
+        //console.log('log:', graph);
+        console.log(" properties edges");
+        console.log('edges: ', graph.edges.length);
+        console.log(" properties nodes");
+        console.log('nodes: ', graph.nodes.length);
+
+        //All the other properties of the graph can be retrieved from
+        console.log(" properties ----")
+        //console.log(graph.properties);
+        ctx.body = graph;
+          ctx.status = 200;
+
+     });
+
+  }
+);
+
 // Get details of universe
 api.get('/getUniverse/:universe',
   async(ctx,next) => {
@@ -138,6 +169,7 @@ api.get('/getPlanets/:universe',
     const { universe } = ctx.params;
 
     try {
+      
       var graphx = db.graph(universe);
       await graphx.get().then(data => {
           // data contains general information about the graph

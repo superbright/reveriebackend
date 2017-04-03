@@ -98,7 +98,7 @@ io.on('updateobject', function (ctx, data) {
   //console.log( `message: ${ data }` )
   _api2.default.updateObjectinPlanet(JSON.parse(data), io);
   io.broadcast('hello', {
-    numConnections: io.connections.size
+    message: "updated"
   });
 });
 io.attach(app);

@@ -4,6 +4,7 @@ const src = env === 'production' ? './build/app' : './src/app';
 
 require('babel-polyfill');
 if (env === 'development') {
+  console.log('dev');
   // for development use babel/register for faster runtime compilation
   require('babel-register');
 }

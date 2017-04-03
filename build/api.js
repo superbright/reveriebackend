@@ -20,7 +20,14 @@ var _arangojs = require('arangojs');
 
 var _arangojs2 = _interopRequireDefault(_arangojs);
 
+var _graphcommons = require('graphcommons');
+
+var _graphcommons2 = _interopRequireDefault(_graphcommons);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var accesskey = "sk_fj5_UlUpdrmhx4dlN43Qxg";
+var graph_id = "750107c0-4669-4245-97bc-6f0923ae95c2";
 
 var api = (0, _koaRouter2.default)();
 
@@ -28,8 +35,9 @@ var config = {
   hosts: '54.210.52.93:3000'
 };
 
-var host = "192.168.99.100";
-var port = 8529;
+//let host = "localhost";
+var host = "8937fa04.ngrok.io";
+var port = 80;
 var databasename = 'theseed';
 var username = 'seed';
 var password = 's33d';
@@ -69,38 +77,18 @@ api.updateObjectinPlanet = function () {
             planetcollection = db.collection("universe");
             _context.next = 5;
             return objectCollection.lookupByKeys([objectid]).then(function (meta) {
+              //console.log("length " + meta.length);
               if (meta.length == 0) {
-                //  io.broadcast( 'message', { result: "object not found"});
                 return;
               }
               objectCollection.update(meta[0], { transform: transform }).then(function (doc1) {
-                //io.broadcast( 'message', { result: "ok"});
+                //console.log("updated");
               }, function (err) {
                 return console.error(err.stack);
               });
             });
 
           case 5:
-            _context.next = 7;
-            return planetcollection.lookupByKeys([planetid]).then(function (meta) {
-              if (meta.length == 0) {
-                //io.broadcast( 'message', { result: "planet not found"});
-                return;
-              }
-              var timeline = meta[0].timeline;
-              timeline.push({
-                timestap: Date.now(),
-                objectid: objectid,
-                transform: transform
-              });
-              planetcollection.update(meta[0], { timeline: timeline }).then(function (doc1) {
-                //io.broadcast( 'message', { result: "updated planetlog"});
-              }, function (err) {
-                return console.error(err.stack);
-              });
-            });
-
-          case 7:
           case 'end':
             return _context.stop();
         }
@@ -137,40 +125,36 @@ api.get('/', function () {
   };
 }());
 
-// Get details of universe
-api.get('/getUniverse/:universe', function () {
+api.get('/graphData', function () {
   var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3(ctx, next) {
-    var universe, transform, universeCollection;
+    var graphcallback;
     return _regenerator2.default.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
-            universe = ctx.params.universe;
-            transform = ctx.req.transform;
-            _context3.prev = 2;
-            universeCollection = db.collection(universe);
-            _context3.next = 6;
-            return universeCollection.all().then(function (result) {
-              ctx.body = result._result;
+            // Reply with 201 Created when the item is saved
+            graphcallback = function graphcallback(graph) {
+              //console.log('log:', graph);
+              console.log(" properties edges");
+              console.log('edges: ', graph.edges.length);
+              console.log(" properties nodes");
+              console.log('nodes: ', graph.nodes.length);
+
+              //All the other properties of the graph can be retrieved from
+              console.log(" properties ----");
+              //console.log(graph.properties);
+              ctx.body = graph;
               ctx.status = 200;
-            });
+            };
 
-          case 6:
-            _context3.next = 11;
-            break;
+            graphcommons.graphs(graph_id, graphcallback);
 
-          case 8:
-            _context3.prev = 8;
-            _context3.t0 = _context3['catch'](2);
-
-            console.log(_context3.t0.response.body);
-
-          case 11:
+          case 2:
           case 'end':
             return _context3.stop();
         }
       }
-    }, _callee3, undefined, [[2, 8]]);
+    }, _callee3, undefined);
   }));
 
   return function (_x5, _x6) {
@@ -178,25 +162,64 @@ api.get('/getUniverse/:universe', function () {
   };
 }());
 
-api.get('/getObjects/:planetid', function () {
+// Get details of universe
+api.get('/getUniverse/:universe', function () {
   var _ref4 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4(ctx, next) {
-    var planetid, graphx;
+    var universe, transform, universeCollection;
     return _regenerator2.default.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
           case 0:
-            planetid = ctx.params.planetid;
-            _context4.prev = 1;
-
-            console.log(planetid);
-            graphx = db.graph("multiverse");
+            universe = ctx.params.universe;
+            transform = ctx.req.transform;
+            _context4.prev = 2;
+            universeCollection = db.collection(universe);
             _context4.next = 6;
+            return universeCollection.all().then(function (result) {
+              ctx.body = result._result;
+              ctx.status = 200;
+            });
+
+          case 6:
+            _context4.next = 11;
+            break;
+
+          case 8:
+            _context4.prev = 8;
+            _context4.t0 = _context4['catch'](2);
+
+            console.log(_context4.t0.response.body);
+
+          case 11:
+          case 'end':
+            return _context4.stop();
+        }
+      }
+    }, _callee4, undefined, [[2, 8]]);
+  }));
+
+  return function (_x7, _x8) {
+    return _ref4.apply(this, arguments);
+  };
+}());
+
+api.get('/getObjects/:planetid', function () {
+  var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5(ctx, next) {
+    var planetid, graphx;
+    return _regenerator2.default.wrap(function _callee5$(_context5) {
+      while (1) {
+        switch (_context5.prev = _context5.next) {
+          case 0:
+            planetid = ctx.params.planetid;
+            _context5.prev = 1;
+            graphx = db.graph("multiverse");
+            _context5.next = 5;
             return graphx.get().then(function (data) {
               // data contains general information about the graph
             });
 
-          case 6:
-            _context4.next = 8;
+          case 5:
+            _context5.next = 7;
             return graphx.traversal('universe/' + planetid, {
               direction: 'outbound',
               graphName: "multiverse",
@@ -211,50 +234,52 @@ api.get('/getObjects/:planetid', function () {
               }
             }).then(function (result) {
               console.log(result); // ['a', 'b', 'c', 'd']
-              ctx.body = { data: result.visited.vertices };
+              ctx.body = { data: result.visited.vertices,
+                id: planetid
+              };
               ctx.status = 200;
             });
 
-          case 8:
-            _context4.next = 13;
+          case 7:
+            _context5.next = 12;
             break;
 
-          case 10:
-            _context4.prev = 10;
-            _context4.t0 = _context4['catch'](1);
+          case 9:
+            _context5.prev = 9;
+            _context5.t0 = _context5['catch'](1);
 
-            console.log(_context4.t0);
+            console.log(_context5.t0);
 
-          case 13:
+          case 12:
           case 'end':
-            return _context4.stop();
+            return _context5.stop();
         }
       }
-    }, _callee4, undefined, [[1, 10]]);
+    }, _callee5, undefined, [[1, 9]]);
   }));
 
-  return function (_x7, _x8) {
-    return _ref4.apply(this, arguments);
+  return function (_x9, _x10) {
+    return _ref5.apply(this, arguments);
   };
 }());
 
 api.get('/getPlanets/:universe', function () {
-  var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5(ctx, next) {
+  var _ref6 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee6(ctx, next) {
     var universe, graphx;
-    return _regenerator2.default.wrap(function _callee5$(_context5) {
+    return _regenerator2.default.wrap(function _callee6$(_context6) {
       while (1) {
-        switch (_context5.prev = _context5.next) {
+        switch (_context6.prev = _context6.next) {
           case 0:
             universe = ctx.params.universe;
-            _context5.prev = 1;
+            _context6.prev = 1;
             graphx = db.graph(universe);
-            _context5.next = 5;
+            _context6.next = 5;
             return graphx.get().then(function (data) {
               // data contains general information about the graph
             });
 
           case 5:
-            _context5.next = 7;
+            _context6.next = 7;
             return graphx.traversal('multiverse/454', {
               direction: 'outbound',
               graphName: universe,
@@ -274,40 +299,40 @@ api.get('/getPlanets/:universe', function () {
             });
 
           case 7:
-            _context5.next = 12;
+            _context6.next = 12;
             break;
 
           case 9:
-            _context5.prev = 9;
-            _context5.t0 = _context5['catch'](1);
+            _context6.prev = 9;
+            _context6.t0 = _context6['catch'](1);
 
-            console.log(_context5.t0.response.body);
+            console.log(_context6.t0);
 
           case 12:
           case 'end':
-            return _context5.stop();
+            return _context6.stop();
         }
       }
-    }, _callee5, undefined, [[1, 9]]);
+    }, _callee6, undefined, [[1, 9]]);
   }));
 
-  return function (_x9, _x10) {
-    return _ref5.apply(this, arguments);
+  return function (_x11, _x12) {
+    return _ref6.apply(this, arguments);
   };
 }());
 
 api.put('/editObject/:objectid', function () {
-  var _ref6 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee6(ctx, next) {
+  var _ref7 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee7(ctx, next) {
     var objectid, transform, keys, objectCollection;
-    return _regenerator2.default.wrap(function _callee6$(_context6) {
+    return _regenerator2.default.wrap(function _callee7$(_context7) {
       while (1) {
-        switch (_context6.prev = _context6.next) {
+        switch (_context7.prev = _context7.next) {
           case 0:
             objectid = ctx.params.objectid;
             transform = ctx.request.body.transform;
             keys = [objectid];
             objectCollection = db.collection("objects");
-            _context6.next = 6;
+            _context7.next = 6;
             return objectCollection.lookupByKeys(keys).then(function (meta) {
               console.log(meta[0]);
               objectCollection.update(meta[0], { transform: transform }).then(function (doc1) {
@@ -320,24 +345,64 @@ api.put('/editObject/:objectid', function () {
 
           case 7:
           case 'end':
-            return _context6.stop();
+            return _context7.stop();
         }
       }
-    }, _callee6, undefined);
+    }, _callee7, undefined);
   }));
 
-  return function (_x11, _x12) {
-    return _ref6.apply(this, arguments);
+  return function (_x13, _x14) {
+    return _ref7.apply(this, arguments);
+  };
+}());
+
+//add new object to a planet
+api.post('/deleteObject/:objectid', function () {
+  var _ref8 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee8(ctx, next) {
+    var objectid, graph, collection;
+    return _regenerator2.default.wrap(function _callee8$(_context8) {
+      while (1) {
+        switch (_context8.prev = _context8.next) {
+          case 0:
+
+            //  const { planetid } = ctx.params;
+            objectid = ctx.params.objectid;
+            graph = db.graph("multiverse");
+            _context8.next = 4;
+            return graph.get().then(function (data) {
+              // data contains general information about the graph
+            });
+
+          case 4:
+            collection = graph.vertexCollection('objects');
+
+            collection.remove(objectid).then(function () {
+              console.log('ok destroyed');
+              ctx.body = "ok";
+              ctx.status = 200;
+              // document 'vertices/some-key' no longer exists
+            });
+
+          case 6:
+          case 'end':
+            return _context8.stop();
+        }
+      }
+    }, _callee8, undefined);
+  }));
+
+  return function (_x15, _x16) {
+    return _ref8.apply(this, arguments);
   };
 }());
 
 //add new object to a planet
 api.post('/addObject/:planetid/:objectid', function () {
-  var _ref7 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee7(ctx, next) {
+  var _ref9 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee9(ctx, next) {
     var planetid, objectid, edgedoccontainsobject, docobject, objectCollection, edgecollection;
-    return _regenerator2.default.wrap(function _callee7$(_context7) {
+    return _regenerator2.default.wrap(function _callee9$(_context9) {
       while (1) {
-        switch (_context7.prev = _context7.next) {
+        switch (_context9.prev = _context9.next) {
           case 0:
             planetid = ctx.params.planetid;
             objectid = ctx.params.objectid;
@@ -350,17 +415,18 @@ api.post('/addObject/:planetid/:objectid', function () {
               transform: {},
               c: Date()
             };
-            _context7.prev = 5;
+            _context9.prev = 5;
             objectCollection = db.collection("objects");
-            _context7.next = 9;
+            _context9.next = 9;
             return objectCollection.save(docobject).then(function (meta) {
               edgedoccontainsobject._to = 'objects/' + meta._key;
             });
 
           case 9:
             edgecollection = db.edgeCollection("contains");
-            _context7.next = 12;
+            _context9.next = 12;
             return edgecollection.save(edgedoccontainsobject).then(function (edge) {
+              console.log("Added");
               console.log(edge);
             });
 
@@ -368,37 +434,37 @@ api.post('/addObject/:planetid/:objectid', function () {
             ctx.body = edgedoccontainsobject;
             ctx.status = 200;
 
-            _context7.next = 20;
+            _context9.next = 20;
             break;
 
           case 16:
-            _context7.prev = 16;
-            _context7.t0 = _context7['catch'](5);
+            _context9.prev = 16;
+            _context9.t0 = _context9['catch'](5);
 
-            console.log(_context7.t0);
-            ctx.body = _context7.t0.response.body;
+            console.log(_context9.t0);
+            ctx.body = _context9.t0.response.body;
 
           case 20:
           case 'end':
-            return _context7.stop();
+            return _context9.stop();
         }
       }
-    }, _callee7, undefined, [[5, 16]]);
+    }, _callee9, undefined, [[5, 16]]);
   }));
 
-  return function (_x13, _x14) {
-    return _ref7.apply(this, arguments);
+  return function (_x17, _x18) {
+    return _ref9.apply(this, arguments);
   };
 }());
 
 api.post('/createPlanet/:planetcollectionname/:universecollectionname', function () {
-  var _ref8 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee8(ctx, next) {
-    var planetcollectionname, universecollectionname, name, edgedoccontainsplanet, universecollection, planetcollection, edgecollection, data, docplanet;
-    return _regenerator2.default.wrap(function _callee8$(_context8) {
+  var _ref10 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee10(ctx, next) {
+    var planetcollectionname, universecollectionname, name, edgedoccontainsplanet, universecollection, planetcollection, edgecollection, data, docplanet, planetobj;
+    return _regenerator2.default.wrap(function _callee10$(_context10) {
       while (1) {
-        switch (_context8.prev = _context8.next) {
+        switch (_context10.prev = _context10.next) {
           case 0:
-            _context8.prev = 0;
+            _context10.prev = 0;
 
 
             console.log(ctx.body);
@@ -414,24 +480,24 @@ api.post('/createPlanet/:planetcollectionname/:universecollectionname', function
             universecollection = db.collection(universecollectionname);
             planetcollection = db.collection(planetcollectionname);
             edgecollection = db.edgeCollection("contains");
-            _context8.next = 12;
+            _context10.next = 12;
             return planetcollection.byExample({ name: name });
 
           case 12:
-            data = _context8.sent;
+            data = _context10.sent;
 
 
             console.log(data._result.length);
 
             if (!(data._result.length > 0)) {
-              _context8.next = 18;
+              _context10.next = 18;
               break;
             }
 
-            return _context8.abrupt('return', ctx.throw(400, 'Name Exists'));
+            return _context10.abrupt('return', ctx.throw(400, 'Name Exists'));
 
           case 18:
-            _context8.next = 20;
+            _context10.next = 20;
             return universecollection.all().then(function (data) {
               edgedoccontainsplanet._from = 'multiverse/' + data._result[0]._key;
             });
@@ -442,82 +508,61 @@ api.post('/createPlanet/:planetcollectionname/:universecollectionname', function
               timeline: [],
               c: Date()
             };
-            _context8.next = 23;
+            planetobj = {};
+            _context10.next = 24;
             return planetcollection.save(docplanet).then(function (meta) {
-
+              planetobj = meta;
+              planetobj.name = name;
               edgedoccontainsplanet._to = 'universe/' + meta._key;
             });
 
-          case 23:
-            _context8.next = 25;
+          case 24:
+            _context10.next = 26;
             return edgecollection.save(edgedoccontainsplanet).then(function (edge) {
-              ctx.body = edgedoccontainsplanet;
+              ctx.body = planetobj;
             });
 
-          case 25:
-            _context8.next = 31;
+          case 26:
+            _context10.next = 32;
             break;
 
-          case 27:
-            _context8.prev = 27;
-            _context8.t0 = _context8['catch'](0);
+          case 28:
+            _context10.prev = 28;
+            _context10.t0 = _context10['catch'](0);
 
-            console.log(_context8.t0);
-            ctx.body = _context8.t0.response.body;
+            console.log(_context10.t0);
+            ctx.body = _context10.t0.response.body;
 
-          case 31:
+          case 32:
           case 'end':
-            return _context8.stop();
+            return _context10.stop();
         }
       }
-    }, _callee8, undefined, [[0, 27]]);
+    }, _callee10, undefined, [[0, 28]]);
   }));
 
-  return function (_x15, _x16) {
-    return _ref8.apply(this, arguments);
+  return function (_x19, _x20) {
+    return _ref10.apply(this, arguments);
   };
 }());
 
-api.post('/createUniverse/:name', function () {
-  var _ref9 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee9(ctx, next) {
-    var name, worldsCollection;
-    return _regenerator2.default.wrap(function _callee9$(_context9) {
-      while (1) {
-        switch (_context9.prev = _context9.next) {
-          case 0:
-            name = ctx.params.name;
-            _context9.prev = 1;
-            worldsCollection = db.collection(name);
+// api.post('/createUniverse/:name',
+//   async(ctx, next) => {
+//     const { name } = ctx.params;
+//     try {
+//       let worldsCollection = db.collection(name);
+//     //  console.log("name to create is " + name);
+//       await worldsCollection.create().then(() => {
+//         //  console.log("created worlds");
+//             ctx.status = 200;
+//         });
+//
+//     } catch (err) {
+//       console.log(err);
+//       ctx.body = err.response.body;
+//     }
+//   }
+// );
 
-            console.log("name to create is " + name);
-            _context9.next = 6;
-            return worldsCollection.create().then(function () {
-              console.log("created worlds");
-              ctx.status = 200;
-            });
-
-          case 6:
-            _context9.next = 12;
-            break;
-
-          case 8:
-            _context9.prev = 8;
-            _context9.t0 = _context9['catch'](1);
-
-            console.log(_context9.t0);
-            ctx.body = _context9.t0.response.body;
-
-          case 12:
-          case 'end':
-            return _context9.stop();
-        }
-      }
-    }, _callee9, undefined, [[1, 8]]);
-  }));
-
-  return function (_x17, _x18) {
-    return _ref9.apply(this, arguments);
-  };
-}());
 
 exports.default = api;
